@@ -134,10 +134,7 @@ def main():
         if args.llm_way == "transformer":
             agent = GraphAgent(args, agent_prompt)
         elif args.llm_way == "vllm":
-            if args.compound_strategy == "plan_compound":
-                agent = GraphAgent_vllm_plan(args, agent_prompt)
-            else:
-                agent = GraphAgent_vllm(args, agent_prompt)
+            agent = GraphAgent_vllm(args, agent_prompt)
     else:
         agent_prompt = reflect_graph_compound_and_plan_prompt if args.compound_strategy in ["plan_compound", "plan"] else reflect_graph_compound_prompt
         reflect_prompt = graph_compound_and_plan_reflect_prompt if args.compound_strategy in ["plan_compound", "plan"] else graph_compound_reflect_prompt

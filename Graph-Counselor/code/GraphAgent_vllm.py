@@ -43,7 +43,7 @@ class GraphAgent_vllm:
             self.enc = AutoTokenizer.from_pretrained(args.llm_version, use_auth_token=True)
         elif args.llm_version in ["../model/gemma-2-9b-it"]:
             self.enc = AutoTokenizer.from_pretrained(args.llm_version, use_auth_token=True)
-        elif args.llm_version in ["../model/Qwen2.5-7B-Instruct"]:            
+        elif args.llm_version in ["../model/Qwen2.5-7B-Instruct", "Qwen2.5-7B-Instruct"]:
             self.enc = AutoTokenizer.from_pretrained(args.llm_version, trust_remote_code=True)
         elif args.llm_version in ['ERNIE-Speed-8K', 'ERNIE-Speed-128K', 'ERNIE-Lite-8K', 'ERNIE-Tiny-8K']:
             self.enc = tiktoken.encoding_for_model("text-davinci-003")
@@ -62,15 +62,18 @@ class GraphAgent_vllm:
         logger.info('Loading the graph...')
         self.graph = json.load(open(graph_dir))
 
-    def run(self, question, answer, reset = True) -> None:
+    def run(self, question, answer, reset=True, dynamic_examples=None) -> None:
         if reset:
             self.__reset_agent()
-        
+
         self.question = question
         self.key = answer
+        self.dynamic_examples = dynamic_examples
 
         while not self.is_halted() and not self.is_finished():
             self.step()
+
+        self.answer_first = self.answer
 
     def step(self) -> None:
         # Think
@@ -106,9 +109,9 @@ class GraphAgent_vllm:
                 except:
                     self.answer = argument
                 if self.is_correct():
-                    self.scratchpad += 'Answer is '+self.answer
-                else: 
-                    self.scratchpad += 'Answer is '+self.answer
+                    self.scratchpad += 'Answer is CORRECT'
+                else:
+                    self.scratchpad += 'Answer is INCORRECT'
                 self.finished = True
                 self.step_n += 1
                 return
@@ -165,8 +168,25 @@ class GraphAgent_vllm:
                 except:
                     self.scratchpad += f'There is something wrong with the arguments you send for degree checking. Please modify it. Make sure that Degree take two value as input: node id and neighbor type.'
 
+            elif action_type == 'NeighborSearch':
+                try:
+                    parts = argument.split(', ', 2)
+                    node_id = remove_quotes(parts[0])
+                    neighbor_type = remove_quotes(parts[1])
+                    query = remove_quotes(parts[2])
+                    raw_neighbors = self.graph_funcs.check_neighbours(node_id, neighbor_type)
+                    neighbor_ids = eval(raw_neighbors) if isinstance(raw_neighbors, str) else raw_neighbors
+                    top_ids = self.node_retriever.search_within_nodes(query, neighbor_ids, topk=3)
+                    self.scratchpad += f"The top-3 {neighbor_type} neighbors of {node_id} most relevant to '{query}' are: " + str(top_ids) + '. '
+                except openai.RateLimitError:
+                    self.scratchpad += f'OpenAI API Rate Limit Exceeded. Please try again.'
+                except KeyError:
+                    self.scratchpad += f'The node or neighbor type does not exist in the graph. Please modify it.'
+                except Exception:
+                    self.scratchpad += f'NeighborSearch failed. Make sure the format is NeighborSearch[node_id, neighbor_type, query].'
+
             else:
-                self.scratchpad += 'Invalid Action. Valid Actions are Retrieve[<Content>] Neighbor[<Node>] Feature[<Node>] and Finish[<answer>].'
+                self.scratchpad += 'Invalid Action. Valid Actions are Retrieve[<Content>] Neighbor[<Node>] Feature[<Node>] Degree[<Node>] NeighborSearch[<Node>, <neighbor_type>, <query>] and Finish[<answer>].'
 
         print(self.scratchpad.split('\n')[-1])
 
@@ -320,7 +340,7 @@ class GraphAgent_vllm:
 
     def _build_agent_prompt(self) -> str:
         return self.agent_prompt.format_messages(
-                            examples = self.examples,
+                            examples = self.dynamic_examples if self.dynamic_examples else self.examples,
                             question = self.question,
                             scratchpad = self.scratchpad,
                             graph_definition = self.graph_definition
@@ -338,9 +358,11 @@ class GraphAgent_vllm:
     def __reset_agent(self) -> None:
         self.step_n = 1
         self.answer = ''
+        self.answer_first = ''
         self.finished = False
         self.scratchpad: str = ''
         self.idd = []
+        self.dynamic_examples = None
 
     def set_qa(self, question: str, key: str) -> None:
         self.question = question

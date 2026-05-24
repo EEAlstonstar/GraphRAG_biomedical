@@ -98,9 +98,10 @@ class GraphAgent_Plan_Reflect_vllm:
             self.enc2 = self.enc
             print("false")
         
-        self.enc2 = AutoTokenizer.from_pretrained("/root/Graph-Counselor/Graph-Counselor/models/qwen/Qwen2.5-7B-Instruct", trust_remote_code=True)
-        
-        self.reflexion_strategy =args.reflexion_strategy
+        if not hasattr(self, 'enc2'):
+            self.enc2 = self.enc
+
+        self.reflexion_strategy = args.reflexion_strategy
         self.max_reflect =args.max_reflect
 
         self.graph_definition = GRAPH_DEFINITION[args.dataset]
@@ -282,8 +283,25 @@ class GraphAgent_Plan_Reflect_vllm:
                 except:
                     self.scratchpad += f'There is something wrong with the arguments you send for degree checking. Please modify it. Make sure that Degree take two value as input: node id and neighbor type.'
 
+            elif action_type == 'NeighborSearch':
+                try:
+                    parts = argument.split(', ', 2)
+                    node_id = remove_quotes(parts[0])
+                    neighbor_type = remove_quotes(parts[1])
+                    query = remove_quotes(parts[2])
+                    raw_neighbors = self.graph_funcs.check_neighbours(node_id, neighbor_type)
+                    neighbor_ids = eval(raw_neighbors) if isinstance(raw_neighbors, str) else raw_neighbors
+                    top_ids = self.node_retriever.search_within_nodes(query, neighbor_ids, topk=3)
+                    self.scratchpad += f"The top-3 {neighbor_type} neighbors of {node_id} most relevant to '{query}' are: " + str(top_ids) + '. '
+                except openai.RateLimitError:
+                    self.scratchpad += f'OpenAI API Rate Limit Exceeded. Please try again.'
+                except KeyError:
+                    self.scratchpad += f'The node or neighbor type does not exist in the graph. Please modify it.'
+                except Exception:
+                    self.scratchpad += f'NeighborSearch failed. Make sure the format is NeighborSearch[node_id, neighbor_type, query].'
+
             else:
-                self.scratchpad += 'Invalid Action. Valid Actions are Retrieve[<Content>] Neighbor[<Node>] Feature[<Node>] and Finish[<answer>].'
+                self.scratchpad += 'Invalid Action. Valid Actions are Retrieve[<Content>] Neighbor[<Node>] Feature[<Node>] Degree[<Node>] NeighborSearch[<Node>, <neighbor_type>, <query>] and Finish[<answer>].'
 
         print(self.scratchpad.split('\n')[-1])
 
@@ -486,19 +504,17 @@ class GraphAgent_Plan_Reflect_vllm:
             llm_answer = qw_format_step(self.llm.invoke((self._build_agent_prompt())))
             return llm_answer
         else:
-            #raise ValueError("The given llm_version is not correct.")
-            pass
+            raise ValueError(f"The given llm_version is not correct: {self.llm_version}")
 
 
-    def _build_agent_prompt(self) -> str: 
-        if self.compound_strategy in ["plan_compound", "plan"]:
-            return self.agent_prompt.format_messages(
-                                examples = self.examples,
-                                reflections = self.reflections_str, 
-                                question = self.question,
-                                scratchpad = truncate_scratchpad2(self.scratchpad, self.enc),
-                                graph_definition = self.graph_definition
-                                )
+    def _build_agent_prompt(self) -> str:
+        return self.agent_prompt.format_messages(
+                            examples = self.examples,
+                            reflections = self.reflections_str,
+                            question = self.question,
+                            scratchpad = truncate_scratchpad2(self.scratchpad, self.enc),
+                            graph_definition = self.graph_definition
+                            )
     
     def _build_agent_prompt_4096(self) -> str:
         if self.compound_strategy in ["plan_compound", "plan"]:
@@ -558,6 +574,7 @@ class GraphAgent_Plan_Reflect_vllm:
         self.finished = False
         self.scratchpad: str = ''
         self.idd = []
+        # answer_first is NOT reset here; it is captured once after round 1 in step()
 
     def set_qa(self, question: str, key: str) -> None:
         self.question = question

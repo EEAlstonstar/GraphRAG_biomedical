@@ -39,9 +39,9 @@ class Retriever:
         self.use_gpu = args.faiss_gpu
         self.node_text_keys = args.node_text_keys
         self.model_name = args.embedder_name
-        self.model = sentence_transformers.SentenceTransformer(
-            "/root/Graph-Counselor/Graph-Counselor/models/AI-ModelScope/all-mpnet-base-v2"
-            )
+        _local_path = "/root/Graph-Counselor/Graph-Counselor/models/AI-ModelScope/all-mpnet-base-v2"
+        _model_path = _local_path if os.path.exists(_local_path) else self.model_name
+        self.model = sentence_transformers.SentenceTransformer(_model_path)
         self.graph = graph
         self.cache = args.embed_cache
         self.cache_dir = args.embed_cache_dir
