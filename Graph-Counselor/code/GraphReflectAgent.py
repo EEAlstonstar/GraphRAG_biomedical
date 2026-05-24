@@ -116,22 +116,25 @@ class GraphReflectAgent:
         logger.info('Loading the graph...')
         self.graph = json.load(open(graph_dir))
 
-    def run(self, question, answer, reset = True) -> None:
+    def run(self, question, answer, reset=True, dynamic_examples=None) -> None:
         if reset:
             self.__reset_agent()
             self.round_n = 1
-            self.reflections_str=""
-        
+            self.reflections_str = ""
+
         self.question = question
         self.key = answer
+        self.dynamic_examples = dynamic_examples
 
-        while not self.is_correct() and self.round_n <= int(self.max_reflect): #/is_correct_LLM
+        while not self.is_correct() and self.round_n <= int(self.max_reflect):
             if (self.is_halted() or self.is_finished()) and not self.is_correct():
                 self.reflect(self.reflexion_strategy)
                 self.round_n += 1
             self.__reset_agent()
             while not self.is_halted() and not self.is_finished():
                 self.step()
+            if self.round_n == 1:
+                self.answer_first = self.answer
 
     def step(self) -> None:
         # Think
@@ -223,8 +226,25 @@ class GraphReflectAgent:
                 except:
                     self.scratchpad += f'There is something wrong with the arguments you send for degree checking. Please modify it. Make sure that Degree take two value as input: node id and neighbor type.'
 
+            elif action_type == 'NeighborSearch':
+                try:
+                    parts = argument.split(', ', 2)
+                    node_id = remove_quotes(parts[0])
+                    neighbor_type = remove_quotes(parts[1])
+                    query = remove_quotes(parts[2])
+                    raw_neighbors = self.graph_funcs.check_neighbours(node_id, neighbor_type)
+                    neighbor_ids = eval(raw_neighbors) if isinstance(raw_neighbors, str) else raw_neighbors
+                    top_ids = self.node_retriever.search_within_nodes(query, neighbor_ids, topk=3)
+                    self.scratchpad += f"The top-3 {neighbor_type} neighbors of {node_id} most relevant to '{query}' are: " + str(top_ids) + '. '
+                except openai.RateLimitError:
+                    self.scratchpad += f'OpenAI API Rate Limit Exceeded. Please try again.'
+                except KeyError:
+                    self.scratchpad += f'The node or neighbor type does not exist in the graph. Please modify it.'
+                except Exception as e:
+                    self.scratchpad += f'NeighborSearch failed. Make sure the format is NeighborSearch[node_id, neighbor_type, query].'
+
             else:
-                self.scratchpad += 'Invalid Action. Valid Actions are Retrieve[<Content>] Neighbor[<Node>] Feature[<Node>] and Finish[<answer>].'
+                self.scratchpad += 'Invalid Action. Valid Actions are Retrieve[<Content>] Neighbor[<Node>] Feature[<Node>] Degree[<Node>] NeighborSearch[<Node>, <neighbor_type>, <query>] and Finish[<answer>].'
 
         print(self.scratchpad.split('\n')[-1])
 
@@ -323,7 +343,7 @@ class GraphReflectAgent:
 
     def _build_agent_prompt(self) -> str:
         return self.agent_prompt.format_messages(
-                            examples = self.examples,
+                            examples = self.dynamic_examples if self.dynamic_examples else self.examples,
                             reflections = self.reflections_str,
                             question = self.question,
                             scratchpad = self.scratchpad,
@@ -359,8 +379,10 @@ class GraphReflectAgent:
     def __reset_agent(self) -> None:
         self.step_n = 1
         self.answer = ''
+        self.answer_first = ''
         self.finished = False
         self.scratchpad: str = ''
+        self.dynamic_examples = None
 
     def set_qa(self, question: str, key: str) -> None:
         self.question = question

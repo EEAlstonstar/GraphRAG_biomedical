@@ -12,11 +12,12 @@ REFLECTION_HEADER = 'You have attempted to answer following question before and 
 REFLECTION_AFTER_LAST_TRIAL_HEADER = 'You have attempted to answer the following question before and failed. The following reflection(s) help you avoid repeating the same mistakes made in your previous attempt. Use them to improve your strategy of correctly answering the given question.\n'
 LAST_TRIAL_HEADER = 'You have attempted to answer the following question before and failed. Below is the last trial you attempted to answer the question. Additionally, in your next round of reasoning, you can directly use the information retrieved from the graph here to reduce the reasoning steps. \n'
 
-GraphAgent_INSTRUCTION = """Solve a question answering task with interleaving Thought, Interaction with Graph, Feedback from Graph steps. In Thought step, you can think about what further information is needed, and In Interaction step, you can get feedback from graphs with four functions: 
+GraphAgent_INSTRUCTION = """Solve a question answering task with interleaving Thought, Interaction with Graph, Feedback from Graph steps. In Thought step, you can think about what further information is needed, and In Interaction step, you can get feedback from graphs with five functions:
 (1) Retrieve[keyword], which retrieves the related node from the graph according to the corresponding query.
 (2) Feature[Node, feature], which returns the detailed attribute information of Node regarding the given "feature" key.
 (3) Degree[Node, neighbor_type], which calculates the number of "neighbor_type" neighbors of the node Node in the graph.
 (4) Neighbor[Node, neighbor_type], which lists the "neighbor_type" neighbours of the node Node in the graph and returns them.
+(5) NeighborSearch[Node, neighbor_type, query], which semantically searches among the "neighbor_type" neighbors of Node and returns the top-3 most relevant ones to the given query. Use this when a node has many neighbors and you need to find the most relevant ones efficiently.
 Here are some examples:
 {examples}
 (END OF EXAMPLES)
@@ -24,11 +25,12 @@ When last Observation has been given or there is no Thought, you should provide 
 Definition of the graph: {graph_definition}
 Question: {question} Please answer by providing node main feature (e.g., names) rather than node IDs. {scratchpad}"""
 
-GraphAgent_INSTRUCTION_COMPOUND = """Solve a question answering task with interleaving Thought, Interaction with Graph, Feedback from Graph steps. In Thought step, you can think about what further information is needed, and In Interaction step, you can get feedback from graphs with four functions: 
+GraphAgent_INSTRUCTION_COMPOUND = """Solve a question answering task with interleaving Thought, Interaction with Graph, Feedback from Graph steps. In Thought step, you can think about what further information is needed, and In Interaction step, you can get feedback from graphs with five functions:
 (1) Retrieve[keyword], which retrieves the related node from the graph according to the corresponding query.
 (2) Feature[Node, feature], which returns the detailed attribute information of Node regarding the given "feature" key.
 (3) Degree[Node, neighbor_type], which calculates the number of "neighbor_type" neighbors of the node Node in the graph.
 (4) Neighbor[Node, neighbor_type], which lists the "neighbor_type" neighbours of the node Node in the graph and returns them.
+(5) NeighborSearch[Node, neighbor_type, query], which semantically searches among the "neighbor_type" neighbors of Node and returns the top-3 most relevant ones to the given query. Use this when a node has many neighbors and you need to find the most relevant ones efficiently.
 Besides, you can use compound function, such as Feature[Retrieve[keyword], feature], which returns the detailed attribute information of Retrieve[keyword] regarding the given "feature" key.
 Here are some examples:
 {examples}
@@ -37,11 +39,12 @@ When last Observation has been given or there is no Thought, you should provide 
 Definition of the graph: {graph_definition}
 Question: {question} Please answer by providing node main feature (e.g., names) rather than node IDs. {scratchpad}"""
 
-REFLECT_GraphAgent_INSTRUCTION_COMPOUND = """Solve a question answering task with interleaving Thought, Interaction with Graph, Feedback from Graph steps. In Thought step, you can think about what further information is needed, and In Interaction step, you can get feedback from graphs with four functions: 
+REFLECT_GraphAgent_INSTRUCTION_COMPOUND = """Solve a question answering task with interleaving Thought, Interaction with Graph, Feedback from Graph steps. In Thought step, you can think about what further information is needed, and In Interaction step, you can get feedback from graphs with five functions:
 (1) Retrieve[keyword], which retrieves the related node from the graph according to the corresponding query.
 (2) Feature[Node, feature], which returns the detailed attribute information of Node regarding the given "feature" key.
 (3) Degree[Node, neighbor_type], which calculates the number of "neighbor_type" neighbors of the node Node in the graph.
 (4) Neighbor[Node, neighbor_type], which lists the "neighbor_type" neighbours of the node Node in the graph and returns them.
+(5) NeighborSearch[Node, neighbor_type, query], which semantically searches among the "neighbor_type" neighbors of Node and returns the top-3 most relevant ones to the given query. Use this when a node has many neighbors and you need to find the most relevant ones efficiently.
 Besides, you can use compound function, such as Feature[Retrieve[keyword], feature], which returns the detailed attribute information of Retrieve[keyword] regarding the given "feature" key.
 Here are some examples:
 {examples}
@@ -52,19 +55,21 @@ Definition of the graph: {graph_definition}
 Question: {question} Please answer by providing node main feature (e.g., names) rather than node IDs. {scratchpad}"""
 
 
-GraphAgent_INSTRUCTION_ZeroShot = """Solve a question answering task with interleaving Thought, Interaction with Graph, Feedback from Graph steps. In Thought step, you can think about what further information is needed, and In Interaction step, you can get feedback from graphs with four functions: 
+GraphAgent_INSTRUCTION_ZeroShot = """Solve a question answering task with interleaving Thought, Interaction with Graph, Feedback from Graph steps. In Thought step, you can think about what further information is needed, and In Interaction step, you can get feedback from graphs with five functions:
 (1) Retrieve[keyword], which retrieves the related node from the graph according to the corresponding query.
 (2) Feature[Node, feature], which returns the detailed attribute information of Node regarding the given "feature" key.
 (3) Degree[Node, neighbor_type], which calculates the number of "neighbor_type" neighbors of the node Node in the graph.
 (4) Neighbor[Node, neighbor_type], which lists the "neighbor_type" neighbours of the node Node in the graph and returns them.
+(5) NeighborSearch[Node, neighbor_type, query], which semantically searches among the "neighbor_type" neighbors of Node and returns the top-3 most relevant ones to the given query. Use this when a node has many neighbors and you need to find the most relevant ones efficiently.
 Definition of the graph: {graph_definition}
 Question: {question} Please answer by providing node main feature (e.g., names) rather than node IDs. {scratchpad}"""
 
-REFLECT_GraphAgent_INSTRUCTION = """Solve a question answering task with interleaving Thought, Interaction with Graph, Feedback from Graph steps. In Thought step, you can think about what further information is needed, and In Interaction step, you can get feedback from graphs with four functions: 
+REFLECT_GraphAgent_INSTRUCTION = """Solve a question answering task with interleaving Thought, Interaction with Graph, Feedback from Graph steps. In Thought step, you can think about what further information is needed, and In Interaction step, you can get feedback from graphs with five functions:
 (1) Retrieve[keyword], which retrieves the related node from the graph according to the corresponding query.
 (2) Feature[Node, feature], which returns the detailed attribute information of Node regarding the given "feature" key.
 (3) Degree[Node, neighbor_type], which calculates the number of "neighbor_type" neighbors of the node Node in the graph.
 (4) Neighbor[Node, neighbor_type], which lists the "neighbor_type" neighbours of the node Node in the graph and returns them.
+(5) NeighborSearch[Node, neighbor_type, query], which semantically searches among the "neighbor_type" neighbors of Node and returns the top-3 most relevant ones to the given query. Use this when a node has many neighbors and you need to find the most relevant ones efficiently.
 Here are some examples:
 {examples}
 (END OF EXAMPLES)
@@ -72,11 +77,12 @@ Here are some examples:
 Definition of the graph: {graph_definition}
 Question: {question} Please answer by providing node main feature (e.g., names) rather than node IDs. {scratchpad}"""
 
-REFLECT_GraphAgent_INSTRUCTION_ZeroShot = """Solve a question answering task with interleaving Thought, Interaction with Graph, Feedback from Graph steps. In Thought step, you can think about what further information is needed, and In Interaction step, you can get feedback from graphs with four functions: 
+REFLECT_GraphAgent_INSTRUCTION_ZeroShot = """Solve a question answering task with interleaving Thought, Interaction with Graph, Feedback from Graph steps. In Thought step, you can think about what further information is needed, and In Interaction step, you can get feedback from graphs with five functions:
 (1) Retrieve[keyword], which retrieves the related node from the graph according to the corresponding query.
 (2) Feature[Node, feature], which returns the detailed attribute information of Node regarding the given "feature" key.
 (3) Degree[Node, neighbor_type], which calculates the number of "neighbor_type" neighbors of the node Node in the graph.
 (4) Neighbor[Node, neighbor_type], which lists the "neighbor_type" neighbours of the node Node in the graph and returns them.
+(5) NeighborSearch[Node, neighbor_type, query], which semantically searches among the "neighbor_type" neighbors of Node and returns the top-3 most relevant ones to the given query. Use this when a node has many neighbors and you need to find the most relevant ones efficiently.
 {reflections}
 Definition of the graph: {graph_definition}
 Question: {question} Please answer by providing node main feature (e.g., names) rather than node IDs. {scratchpad}"""
@@ -87,11 +93,12 @@ Here are some examples:
 {examples}
 (END OF EXAMPLES)
 Previous trial:
-Solve a question answering task with interleaving Thought, Interaction with Graph, Feedback from Graph steps. In Thought step, you can think about what further information is needed, and in Interaction step, you can get feedback from graphs with four functions: 
+Solve a question answering task with interleaving Thought, Interaction with Graph, Feedback from Graph steps. In Thought step, you can think about what further information is needed, and in Interaction step, you can get feedback from graphs with five functions:
 (1) Retrieve[keyword], which retrieves the related node from the graph according to the corresponding query.
 (2) Feature[Node, feature], which returns the detailed attribute information of Node regarding the given "feature" key.
 (3) Degree[Node, neighbor_type], which calculates the number of "neighbor_type" neighbors of the node Node in the graph.
 (4) Neighbor[Node, neighbor_type], which lists the "neighbor_type" neighbours of the node Node in the graph and returns them.
+(5) NeighborSearch[Node, neighbor_type, query], which semantically searches among the "neighbor_type" neighbors of Node and returns the top-3 most relevant ones to the given query.
 Definition of the graph: {graph_definition}
 Question: {question}Please answer by providing node main feature (e.g., names) rather than node IDs.{scratchpad}
 Reflection:"""
@@ -104,6 +111,7 @@ Graph Function Background
   - Feature(Node, feature): Retrieves detailed attribute information for the specified node and feature key.
   - Degree(Node, neighbor_type): Calculates the number of neighbors of the specified type for the given node.
   - Neighbor(Node, neighbor_type): Lists the neighbors of the specified type for the given node.
+  - NeighborSearch(Node, neighbor_type, query): Semantically searches among the neighbors of the specified type and returns the top-3 most relevant to the query.
 Recap of the Trial
 - Question: [Insert the problem description here]
 - Graph Information Used: [List the graph structural information selected in the trial]
@@ -144,6 +152,7 @@ Graph Function Background
   - Feature(Node, feature): Retrieves detailed attribute information for the specified node and feature key.
   - Degree(Node, neighbor_type): Calculates the number of neighbors of the specified type for the given node.
   - Neighbor(Node, neighbor_type): Lists the neighbors of the specified type for the given node.
+  - NeighborSearch(Node, neighbor_type, query): Semantically searches among the neighbors of the specified type and returns the top-3 most relevant to the query.
 Recap of the Trial
 - Question: [Insert the problem description here]
 - Graph Information Used: [List the graph structural information selected in the trial]
@@ -186,6 +195,7 @@ Graph Function Background
   - Feature(Node, feature): Retrieves detailed attribute information for the specified node and feature key.
   - Degree(Node, neighbor_type): Calculates the number of neighbors of the specified type for the given node.
   - Neighbor(Node, neighbor_type): Lists the neighbors of the specified type for the given node.
+  - NeighborSearch(Node, neighbor_type, query): Semantically searches among the neighbors of the specified type and returns the top-3 most relevant to the query.
   Besides, you can use compound function, such as Feature[Retrieve[keyword], feature], which returns the detailed attribute information of Retrieve[keyword] regarding the given "feature" key.
 Recap of the Trial
 - Question: [Insert the problem description here]

@@ -63,6 +63,7 @@ class Retriever:
             self.doc_type = meta_type
             pickle.dump([embeds, ids, meta_type], open(os.path.join(self.cache_dir, f'cache-{save_model_name}.pkl'), 'wb'))
 
+        self.all_embeddings = np.array(embeds).astype('float32')
         self.init_index_and_add(embeds)
 
     def process_graph(self):
@@ -137,6 +138,29 @@ class Retriever:
             self.index.reset()
         self.doc_lookup = []
         self.query_lookup = []
+
+    def search_within_nodes(self, query, node_ids, topk: int = 3):
+        """Semantic search restricted to a given list of node IDs.
+
+        Useful for NeighborSearch: find the most query-relevant nodes
+        among a potentially large neighbor set without scanning the full index.
+        """
+        if not node_ids:
+            return []
+
+        node_id_set = set(str(nid) for nid in node_ids)
+        target_positions = [i for i, nid in enumerate(self.doc_lookup) if str(nid) in node_id_set]
+
+        if not target_positions:
+            return []
+
+        topk = min(topk, len(target_positions))
+        target_embeds = self.all_embeddings[target_positions]  # (n, dim)
+        query_embed = self.model.encode(query, show_progress_bar=False).astype('float32')
+
+        similarities = np.dot(target_embeds, query_embed)
+        top_indices = np.argsort(similarities)[::-1][:topk]
+        return [self.doc_lookup[target_positions[i]] for i in top_indices]
 
     def search_single(self, query, topk: int = 10):
         # logger.info("Searching")
