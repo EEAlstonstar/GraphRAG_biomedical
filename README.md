@@ -154,3 +154,7 @@ bash scripts/run\_Graph-Counselor.sh
 ### **🏷️ Acknowledgements**
 
 This project is built upon the original work of **Graph Counselor**. We acknowledge the original authors for their pioneering contributions to Multi-Agent Graph Exploration.
+
+## Contributors
+- YixinLiu
+- xinyangsally
