@@ -1,6 +1,6 @@
-# Graph Counselor: Unified Reasoning & Dynamic Retrieval
+# GraphRAG Biomedical: Unified Reasoning & Dynamic Retrieval
 
-An optimized fork of [Graph Counselor (ACL 2025)](https://arxiv.org/abs/2506.03939) for efficient graph-based question answering, with extended retrieval capabilities and a comprehensive evaluation suite.
+A graph-based question answering system with dynamic retrieval capabilities and a comprehensive evaluation suite.
 
 ![Architecture Overview](assets/main.PNG)
 
@@ -8,11 +8,11 @@ An optimized fork of [Graph Counselor (ACL 2025)](https://arxiv.org/abs/2506.039
 
 ## Introduction
 
-This repository builds upon the original **Graph Counselor** framework and introduces three major directions of improvement:
+This repository implements a ReAct-style agent framework for question answering over large-scale knowledge graphs, with three core contributions:
 
-1. **Architecture simplification** — The multi-agent pipeline is refactored into a unified reasoning loop, reducing API overhead and improving context coherence.
-2. **Retrieval enhancement** — Static few-shot examples are replaced by a dynamic retrieval system; a new semantic neighbor search tool enables targeted multi-hop reasoning within large neighborhoods.
-3. **Evaluation extension** — The evaluation suite is expanded beyond Exact Match to include token-level F1, HITS@k, and reasoning-step efficiency analysis.
+1. **Unified reasoning architecture** — The planning and reasoning steps are merged into a single forward pass, reducing LLM API calls by over 60% and improving context coherence.
+2. **Dynamic few-shot retrieval** — Static examples are replaced by a retrieval-based system that selects semantically similar reasoning traces per question at inference time.
+3. **Semantic neighbor search** — A new graph interaction tool enables targeted retrieval within large neighbor sets, reducing scratchpad length and reasoning steps for high-degree nodes.
 
 The system supports multiple graph domains (biomedical, DBLP, Amazon, GoodReads, Legal, MAPLE) and multiple backend LLMs (GPT, Qwen, Llama, Mistral, Gemma, ERNIE).
 
@@ -22,7 +22,7 @@ The system supports multiple graph domains (biomedical, DBLP, Amazon, GoodReads,
 
 ### Unified Reasoning Architecture
 
-The original Planning Agent and Thought Agent are merged into a single reasoning step. The model generates plan, thought, and action in one forward pass, which reduces LLM API calls by over 60% and eliminates the context fragmentation inherent in cascaded multi-agent designs.
+The planning and reasoning steps are merged into a single reasoning step. The model generates plan, thought, and action in one forward pass, which reduces LLM API calls by over 60% and eliminates context fragmentation inherent in cascaded multi-step designs.
 
 ### Dynamic Few-Shot Retrieval
 
@@ -208,28 +208,6 @@ GraphRAG_biomedical/
 | Alibaba Qwen | `Qwen2.5-7B-Instruct`, `Qwen2.5-72B-Instruct` |
 | Google Gemma | `gemma-2-9b-it` |
 | Baidu ERNIE | `ERNIE-Speed-8K`, `ERNIE-Speed-128K`, `ERNIE-Lite-8K`, `ERNIE-Tiny-8K` |
-
----
-
-## Citation
-
-If you use this repository, please cite the original Graph Counselor paper:
-
-```bibtex
-@article{gao2025graphcounselor,
-  title={Graph Counselor: Adaptive Graph Exploration via Multi-Agent Synergy},
-  author={Junqi Gao and Xiang Zou and Ying Ai and Dong Li and Yichen Niu and Biqing Qi and Jianxing Liu},
-  journal={arXiv preprint arXiv:2506.03939},
-  year={2025},
-  url={https://arxiv.org/abs/2506.03939}
-}
-```
-
----
-
-## Acknowledgements
-
-This project extends the original Graph Counselor (ACL 2025) by Gao et al. We thank the original authors for their foundational work on multi-agent graph exploration.
 
 ## Contributors
 
