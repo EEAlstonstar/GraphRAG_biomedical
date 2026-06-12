@@ -213,4 +213,4 @@ GraphRAG_biomedical/
 
 - YixinLiu
 - xinyangsally
-- [SatouJotaro](mailto:baixiaochen@bupt.edu.cn)
+- [SatouJotaro](mailto:baixiaochen@bupt.edu.cn) (Beijing University of Posts and Telecommunications)
